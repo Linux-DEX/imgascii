@@ -2,7 +2,7 @@
 
 Turn a picture into plain ASCII art: characters you can select, copy, and paste into a file, chat, or editor. There are no color codes.
 
-Dark pixels become dense characters (`$`, `@`, `#`). Light pixels become sparse ones, down to a space. A terminal cell is about twice as tall as it is wide, so the row count is half of a square pixel grid and the picture keeps its shape.
+Dark pixels become dense characters (`@`, `#`, `%`). Light pixels become sparse ones, down to a space. The darkest and lightest pixels in the picture are stretched to the ends of that range, so a flat photo still shows edges. A terminal cell is about twice as tall as it is wide, so the row count is half of a square pixel grid and the picture keeps its shape.
 
 ## Requirements
 
@@ -37,7 +37,7 @@ go run . --width 60 https://example.com/banner.jpg
 ## Usage
 
 ```bash
-imgascii [--width N] <file-or-url>
+imgascii [--width N] [--invert] [--long] <file-or-url>
 ```
 
 One argument, either a local file or an `http`/`https` URL. The art is written to stdout. Errors go to stderr.
@@ -70,6 +70,29 @@ imgascii --width 40 photo.png | less
 
 `--width` must be at least 1. `0` means "use the terminal width."
 
+### Invert
+
+`--invert` draws light pixels with dense characters and dark pixels with spaces. Use it for a light logo on a transparent or black background, and when you paste into a dark chat or terminal.
+
+```bash
+imgascii --invert logo.png
+go run . --invert https://example.com/logo.png
+```
+
+### Character ramp
+
+The default ramp is short, so the picture stays readable at a normal width:
+
+```text
+ .:-=+*#%@
+```
+
+`--long` switches to the detailed ramp, from a space to `$`. It is worth using when `--width` is large.
+
+```bash
+imgascii --long --width 120 photo.png
+```
+
 ### Local files
 
 Pass a path. The format is detected from the file bytes, not the extension, so a file named `image` or `photo.bin` still works if the contents are a supported image.
@@ -101,13 +124,8 @@ GIF animation is not played. The first frame is the picture.
 
 1. The image is scaled with Catmull-Rom to `width` characters across. The number of rows follows the source aspect ratio, then is halved because a character cell is taller than it is wide. There is always at least one row.
 2. Each pixel becomes one ASCII character. Brightness uses the usual weights: 30% red, 59% green, 11% blue.
-3. The ramp runs from a space (white) to `$` (black):
-
-```text
- .'`^",:;Il!i><~+_-?][}{1)(|\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$
-```
-
-4. A pixel with alpha below 16 is a space.
+3. Opaque pixels are stretched so the darkest pixel in the image maps to the darkest character and the lightest maps to a space. `--invert` flips that.
+4. A pixel with alpha below 16 is a space and is left out of the stretch.
 
 The result is only those characters and newlines. No escape codes.
 
@@ -119,10 +137,10 @@ A photo at the full terminal width:
 imgascii vacation.jpg
 ```
 
-A small logo, 40 columns:
+A small logo, 40 columns, inverted for a dark background:
 
 ```bash
-imgascii --width 40 logo.png
+imgascii --invert --width 40 logo.png
 ```
 
 Save text you can copy:

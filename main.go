@@ -10,8 +10,10 @@ import (
 
 func main() {
 	width := flag.Int("width", 0, "column count; default is the terminal width")
+	invert := flag.Bool("invert", false, "dense characters for light pixels")
+	long := flag.Bool("long", false, "use the detailed character ramp")
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "usage: imgascii [--width N] <file-or-url>\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "usage: imgascii [--width N] [--invert] [--long] <file-or-url>\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -35,7 +37,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "imgascii: %v\n", err)
 		os.Exit(1)
 	}
-	if err := render(os.Stdout, img, cols); err != nil {
+	if err := render(os.Stdout, img, cols, *invert, *long); err != nil {
 		fmt.Fprintf(os.Stderr, "imgascii: %v\n", err)
 		os.Exit(1)
 	}
